@@ -20,6 +20,7 @@ model User {
   updatedAt          DateTime           @updatedAt
   publishedBargains  BargainSession[]   @relation("PublisherBargains")
   bargainedSessions   BargainSession[]   @relation("BargainerBargains")
+  publishedProducts   Product[]          @relation("PublishedProducts")
 
   @@map("users")
 }
@@ -54,4 +55,24 @@ model BargainMessage {
   session      BargainSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@map("bargain_messages")
+}
+
+model Product {
+  id            String    @id @default(cuid())
+  title         String
+  description    String?
+  publishPrice  Int       // Price in cents
+  imageUrl      String
+  publisherId   String
+  category      String?
+  durationDays  Int       // 1, 7, or 30
+  expiresAt     DateTime
+  status        String    @default("active") // active, expired, deleted
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  publisher     User       @relation("PublishedProducts", fields: [publisherId], references: [id])
+
+  @@index([publisherId, status])
+  @@index([status, expiresAt])
+  @@map("products")
 }

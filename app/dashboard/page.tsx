@@ -6,109 +6,24 @@ import Link from "next/link";
 import Image from "next/image";
 import { ProductCard } from '@/components/ProductCard';
 
-const products = [
-  {
-    id: 'iphone-15-pro',
-    title: 'Apple iPhone 15 Pro Max 256GB',
-    progress: 180,
-    currentPrice: '¥5,980',
-    targetPrice: '¥6,999',
-    publishPrice: '¥7,999',
-    publishPriceNum: 7999,
-    targetPriceNum: 6999,
-    user: '小红正在砍价',
-    timeLeft: '23:45:12',
-  },
-  {
-    id: 'ipad-pro-m2',
-    title: 'iPad Pro 11英寸 M2芯片 256GB',
-    progress: 150,
-    currentPrice: '¥4,200',
-    targetPrice: '¥5,499',
-    publishPrice: '¥6,199',
-    publishPriceNum: 6199,
-    targetPriceNum: 5499,
-    user: '小明正在砍价',
-    timeLeft: '18:30:45',
-  },
-  {
-    id: 'airpods-pro-2',
-    title: 'AirPods Pro 2代 主动降噪',
-    progress: 200,
-    currentPrice: '¥1,500',
-    targetPrice: '¥1,799',
-    publishPrice: '¥1,899',
-    publishPriceNum: 1899,
-    targetPriceNum: 1799,
-    user: '阿华正在砍价',
-    timeLeft: '12:15:30',
-  },
-  {
-    id: 'switch-oled',
-    title: 'Nintendo Switch OLED 版主机',
-    progress: 120,
-    currentPrice: '¥1,800',
-    targetPrice: '¥2,299',
-    publishPrice: '¥2,599',
-    publishPriceNum: 2599,
-    targetPriceNum: 2299,
-    user: '大伟正在砍价',
-    timeLeft: '08:42:18',
-  },
-  {
-    id: 'dyson-hd08',
-    title: 'Dyson 戴森吹风机 HD08',
-    progress: 220,
-    currentPrice: '¥2,100',
-    targetPrice: '¥2,690',
-    publishPrice: '¥2,990',
-    publishPriceNum: 2990,
-    targetPriceNum: 2690,
-    user: '莉莉正在砍价',
-    timeLeft: '05:20:00',
-  },
-  {
-    id: 'xiaomi-band-8',
-    title: '小米手环8 Pro NFC版',
-    progress: 240,
-    currentPrice: '¥320',
-    targetPrice: '¥399',
-    publishPrice: '¥499',
-    publishPriceNum: 499,
-    targetPriceNum: 399,
-    user: '强哥正在砍价',
-    timeLeft: '02:58:45',
-  },
-  {
-    id: 'sony-wh1000xm5',
-    title: 'Sony WH-1000XM5 无线降噪耳机',
-    progress: 190,
-    currentPrice: '¥1,850',
-    targetPrice: '¥2,299',
-    publishPrice: '¥2,499',
-    publishPriceNum: 2499,
-    targetPriceNum: 2299,
-    user: '阿杰正在砍价',
-    timeLeft: '15:30:00',
-  },
-  {
-    id: 'keychron-k2-pro',
-    title: 'Keychron K2 Pro 机械键盘 RGB',
-    progress: 160,
-    currentPrice: '¥420',
-    targetPrice: '¥528',
-    publishPrice: '¥598',
-    publishPriceNum: 598,
-    targetPriceNum: 528,
-    user: '小雨正在砍价',
-    timeLeft: '09:15:30',
-  },
-];
+interface Product {
+  id: string;
+  title: string;
+  publishPrice: number;
+  imageUrl: string;
+  publisherId: string;
+  publisher?: {
+    name: string | null;
+  };
+  expiresAt: string;
+}
 
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const handleDevLogin = async () => {
@@ -126,7 +41,7 @@ export default function DashboardPage() {
         })
       });
       if (res.ok) {
-        // Reload the page to pick up the new session
+        // Reload to pick up the new session
         window.location.reload();
       }
     } catch (error) {
@@ -154,6 +69,26 @@ export default function DashboardPage() {
     checkAuth();
   }, []);
 
+  // Fetch products when user is available
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setProductsLoading(true);
+      try {
+        const res = await fetch('/api/products');
+        if (!res.ok) throw new Error('Failed to fetch products');
+        const data = await res.json();
+        setProducts(data.products || []);
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+      } finally {
+        setProductsLoading(false);
+      }
+    };
+
+    // Only fetch if we're staying on the page (user may or may not exist)
+    fetchProducts();
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg-page">
@@ -162,8 +97,6 @@ export default function DashboardPage() {
     );
   }
 
-  if (!user) return null;
-
   return (
     <div className="min-h-screen bg-bg-page">
       {/* 导航栏 */}
@@ -171,7 +104,9 @@ export default function DashboardPage() {
         <div className="mx-auto max-w-[1440px] px-10">
           <div className="flex h-16 items-center gap-10">
             {/* Logo */}
-            <div className="text-primary text-2xl font-bold">多多砍价</div>
+            <Link href="/dashboard" className="text-primary text-2xl font-bold">
+              多多砍价
+            </Link>
 
             {/* 搜索框 */}
             <div className="flex h-10 w-full max-w-[500px] flex-1 items-center gap-3 rounded-full bg-bg-page px-4">
@@ -184,15 +119,15 @@ export default function DashboardPage() {
               <Link href="/" className="text-text-primary hover:text-primary text-sm font-semibold transition-colors">
                 首页
               </Link>
-              <span className="bg-primary shadow-button border-2 border-primary rounded-full px-5 py-2 text-bg-card text-sm font-semibold cursor-pointer">
+              <Link href="/dashboard" className="bg-primary shadow-button border-2 border-primary rounded-full px-5 py-2 text-bg-card text-sm font-semibold">
                 砍价大厅
-              </span>
-              <span className="border-primary bg-bg-page hover:bg-primary-bg shadow-card rounded-full border-2 px-5 py-2 text-primary text-sm font-semibold transition-all cursor-pointer">
-                我的砍价
-              </span>
-              <span className="bg-primary shadow-button hover:bg-primary-light border-2 border-primary rounded-full px-5 py-2 text-bg-card text-sm font-semibold transition-all cursor-pointer">
+              </Link>
+              <Link href="/my-products" className="border-primary bg-bg-page hover:bg-primary-bg shadow-card rounded-full border-2 px-5 py-2 text-primary text-sm font-semibold transition-all">
+                我的商品
+              </Link>
+              <Link href="/publish" className="bg-primary shadow-button hover:bg-primary-light border-2 border-primary rounded-full px-5 py-2 text-bg-card text-sm font-semibold transition-all">
                 + 发布商品
-              </span>
+              </Link>
             </nav>
 
             {/* 账号设置按钮 */}
@@ -227,12 +162,33 @@ export default function DashboardPage() {
           <p className="text-text-secondary text-sm">邀请好友帮忙砍价，0元免费拿好物！</p>
         </div>
 
-        {/* 商品网格 - 2行4列 */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
-        </div>
+        {/* Loading state */}
+        {productsLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="text-primary text-xl font-bold animate-pulse">加载商品中...</div>
+          </div>
+        ) : products.length === 0 ? (
+          <div className="bg-bg-card shadow-card rounded-xl p-12 text-center">
+            <p className="text-text-secondary mb-4 text-lg">暂时没有商品</p>
+            <p className="text-text-light text-sm">快来发布第一个商品吧！</p>
+          </div>
+        ) : (
+          /* 商品网格 */
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                id={product.id}
+                title={product.title}
+                publishPrice={product.publishPrice}
+                imageUrl={product.imageUrl}
+                publisher={product.publisher}
+                expiresAt={product.expiresAt}
+                isOwner={user?.secondmeId === product.publisherId}
+              />
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

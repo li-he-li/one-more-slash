@@ -1,33 +1,56 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface ProductCardProps {
   id: string;
   title: string;
-  progress: number;
-  currentPrice: string;
-  targetPrice: string;
-  publishPrice: string;
-  publishPriceNum?: number;
-  targetPriceNum?: number;
-  user: string;
-  timeLeft: string;
+  publishPrice: number;
+  imageUrl: string;
+  publisher?: {
+    name: string | null;
+  } | null;
+  expiresAt: string;
+  isOwner?: boolean;
 }
 
 export function ProductCard({
   id,
   title,
-  progress,
-  currentPrice,
-  targetPrice,
   publishPrice,
-  publishPriceNum,
-  targetPriceNum,
-  user,
-  timeLeft,
+  imageUrl,
+  publisher,
+  expiresAt,
+  isOwner = false,
 }: ProductCardProps) {
   const router = useRouter();
   const [isCreating, setIsCreating] = React.useState(false);
+
+  // Calculate derived values
+  const publishPriceStr = `¥${(publishPrice / 100).toFixed(0)}`;
+  const currentPrice = `¥${(publishPrice * 0.75 / 100).toFixed(0)}`; // Mock: 75% of publish
+  const targetPrice = `¥${(publishPrice * 0.85 / 100).toFixed(0)}`; // Mock: 85% of publish
+  const progress = Math.round((publishPrice * 0.75 / publishPrice) * 200); // Mock progress
+
+  // Calculate time left
+  const getTimeLeft = (expiryStr: string): string => {
+    const expiry = new Date(expiryStr);
+    const now = new Date();
+    const diffMs = expiry.getTime() - now.getTime();
+
+    if (diffMs <= 0) return '已过期';
+
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (days > 0) return `${days}天${hours}时`;
+    if (hours > 0) return `${hours}时${minutes}分`;
+    return `${minutes}分钟`;
+  };
+
+  const timeLeft = getTimeLeft(expiresAt);
+  const userName = publisher?.name || '匿名用户';
 
   const handleBargainClick = async () => {
     if (isCreating) return;
@@ -42,8 +65,7 @@ export function ProductCard({
         body: JSON.stringify({
           productId: id,
           productName: title,
-          publishPrice: publishPriceNum || parseInt(publishPrice.replace(/[^\d]/g, ''), 10),
-          targetPrice: targetPriceNum || parseInt(targetPrice.replace(/[^\d]/g, ''), 10),
+          publishPrice,
         }),
       });
 
@@ -64,11 +86,47 @@ export function ProductCard({
       setIsCreating(false);
     }
   };
+
+  const handleEdit = () => {
+    router.push(`/publish/edit/${id}`);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('确定要删除此商品吗？')) return;
+
+    try {
+      const res = await fetch(`/api/products/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || '删除失败');
+      }
+
+      // Refresh the page
+      router.refresh();
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert(error instanceof Error ? error.message : '删除失败');
+    }
+  };
+
   return (
     <div className="bg-bg-card shadow-card hover:shadow-xl w-full rounded-xl overflow-hidden transition-all duration-300">
       {/* 商品图片 */}
-      <div className="bg-primary-bg h-[200px] flex items-center justify-center">
-        <span className="text-primary text-5xl">📦</span>
+      <div className="bg-primary-bg h-[200px] flex items-center justify-center overflow-hidden">
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={title}
+            width={400}
+            height={200}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <span className="text-primary text-5xl">📦</span>
+        )}
       </div>
 
       {/* 商品信息 */}
@@ -102,7 +160,7 @@ export function ProductCard({
           <div className="flex items-center gap-2">
             <span className="text-text-light text-xs">发布价</span>
             <span className="text-text-secondary text-sm line-through">
-              {publishPrice}
+              {publishPriceStr}
             </span>
           </div>
         </div>
@@ -112,7 +170,7 @@ export function ProductCard({
           <div className="bg-primary-bg flex h-8 w-8 items-center justify-center rounded-full">
             <span>👤</span>
           </div>
-          <span className="text-text-secondary text-xs">{user}</span>
+          <span className="text-text-secondary text-xs">{userName}</span>
         </div>
 
         {/* 剩余时间 */}
@@ -121,14 +179,33 @@ export function ProductCard({
           <span className="text-text-secondary text-xs">还剩 {timeLeft}</span>
         </div>
 
-        {/* 砍价按钮 */}
-        <button
-          onClick={handleBargainClick}
-          disabled={isCreating}
-          className="bg-primary shadow-button border-2 border-primary hover:bg-primary-light hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 w-full rounded-full px-6 py-3 text-bg-card text-base font-bold transition-all duration-200"
-        >
-          {isCreating ? '创建中...' : '帮他砍一刀 🔪'}
-        </button>
+        {/* 操作按钮 */}
+        <div className="flex gap-2">
+          <button
+            onClick={handleBargainClick}
+            disabled={isCreating}
+            className="bg-primary shadow-button border-2 border-primary hover:bg-primary-light hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex-1 rounded-full px-6 py-3 text-bg-card text-base font-bold transition-all duration-200"
+          >
+            {isCreating ? '创建中...' : '帮他砍一刀 🔪'}
+          </button>
+
+          {isOwner && (
+            <>
+              <button
+                onClick={handleEdit}
+                className="border-primary bg-bg-page hover:bg-primary-bg hover:border-primary border rounded-full px-4 py-3 text-primary text-sm font-semibold transition-all"
+              >
+                编辑
+              </button>
+              <button
+                onClick={handleDelete}
+                className="border-red-500 bg-bg-page hover:bg-red-50 hover:border-red-600 border rounded-full px-4 py-3 text-red-500 text-sm font-semibold transition-all"
+              >
+                删除
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
