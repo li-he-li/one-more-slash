@@ -1,0 +1,22 @@
+{
+  "stage": "ready",
+  "api": {
+    "appId": "cc57d53a-eac5-48ee-a662-64553a12c390",
+    "appSecret": "6b1cd4a7edec9b8aa714f30052205b28fadce97b82b14281275cf9b6ef895ff3",
+    "endpoints": {
+      "oauth": "https://api.second.me/v1/oauth2",
+      "api": "https://api.second.me/v1"
+    },
+    "docs": {
+      "quickstart": "https://develop-docs.second.me/zh/docs",
+      "oauth2": "https://develop-docs.second.me/zh/docs/authentication/oauth2",
+      "api": "https://develop-docs.second.me/zh/docs/api-reference/secondme"
+    }
+  },
+  "modules": ["auth", "chat", "shades", "softmemory"],
+  "database": {
+    "type": "sqlite",
+    "url": "file:./dev.db"
+  },
+  "prd": null
+}
