@@ -109,25 +109,50 @@ export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  const handleDevLogin = async () => {
+    setIsLoggingIn(true);
+    try {
+      const res = await fetch('/api/auth/mock-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user: {
+            userId: 'mock-bargainer-id',
+            name: 'Dev User',
+            email: 'dev@example.com',
+          }
+        })
+      });
+      if (res.ok) {
+        // Reload the page to pick up the new session
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
         const res = await fetch("/api/auth/me");
-        if (!res.ok) {
-          router.push("/");
-          return;
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
         }
-        const data = await res.json();
-        setUser(data.user);
+        // Don't redirect on auth failure - stay on page and show login button
       } catch (error) {
-        router.push("/");
+        console.error('Auth check failed:', error);
       } finally {
         setLoading(false);
       }
     };
     checkAuth();
-  }, [router]);
+  }, []);
 
   if (loading) {
     return (
@@ -171,15 +196,25 @@ export default function DashboardPage() {
             </nav>
 
             {/* 账号设置按钮 */}
-            <button className="bg-primary shadow-button border-2 border-primary hover:bg-primary-light flex items-center gap-2 rounded-full px-5 py-2 text-bg-card text-sm font-semibold transition-all">
-              {user.image ? (
-                <Image src={user.image} alt={user.name} width={24} height={24} className="rounded-full" />
-              ) : (
-                <span>👤</span>
-              )}
-              <span>{user.name || '账号设置'}</span>
-              <span className="text-xs">▼</span>
-            </button>
+            {user ? (
+              <button className="bg-primary shadow-button border-2 border-primary hover:bg-primary-light flex items-center gap-2 rounded-full px-5 py-2 text-bg-card text-sm font-semibold transition-all">
+                {user.image ? (
+                  <Image src={user.image} alt={user.name} width={24} height={24} className="rounded-full" />
+                ) : (
+                  <span>👤</span>
+                )}
+                <span>{user.name || '账号设置'}</span>
+                <span className="text-xs">▼</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleDevLogin}
+                disabled={isLoggingIn}
+                className="bg-accent shadow-button border-2 border-accent hover:bg-accent-light flex items-center gap-2 rounded-full px-5 py-2 text-bg-card text-sm font-semibold transition-all"
+              >
+                {isLoggingIn ? '登录中...' : '🔓 Dev Login'}
+              </button>
+            )}
           </div>
         </div>
       </header>

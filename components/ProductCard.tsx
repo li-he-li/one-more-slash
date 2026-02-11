@@ -48,6 +48,9 @@ export function ProductCard({
       });
 
       if (!res.ok) {
+        if (res.status === 401) {
+          throw new Error('Please log in first to bargain');
+        }
         throw new Error('Failed to create bargain session');
       }
 
@@ -55,7 +58,8 @@ export function ProductCard({
       router.push(`/bargain/${data.sessionId}`);
     } catch (error) {
       console.error('Error creating bargain session:', error);
-      alert('创建砍价会话失败，请稍后再试');
+      const errorMessage = error instanceof Error ? error.message : '创建砍价会话失败，请稍后再试';
+      alert(errorMessage);
     } finally {
       setIsCreating(false);
     }
