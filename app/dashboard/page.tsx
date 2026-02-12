@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { ProductCard } from '@/components/ProductCard';
+import { UserDropdownMenu } from '@/components/UserDropdownMenu';
 
 interface Product {
   id: string;
@@ -130,17 +130,9 @@ export default function DashboardPage() {
               </Link>
             </nav>
 
-            {/* 账号设置按钮 */}
+            {/* User Dropdown Menu */}
             {user ? (
-              <button className="bg-primary shadow-button border-2 border-primary hover:bg-primary-light flex items-center gap-2 rounded-full px-5 py-2 text-bg-card text-sm font-semibold transition-all">
-                {user.image ? (
-                  <Image src={user.image} alt={user.name} width={24} height={24} className="rounded-full" />
-                ) : (
-                  <span>👤</span>
-                )}
-                <span>{user.name || '账号设置'}</span>
-                <span className="text-xs">▼</span>
-              </button>
+              <UserDropdownMenu user={user} />
             ) : (
               <button
                 onClick={handleDevLogin}

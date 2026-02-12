@@ -14,7 +14,8 @@
       "Bash(npx create-next-app:*)",
       "Bash(dir:*)",
       "Bash(npx openspec validate:*)",
-      "Bash(npx prisma migrate reset:*)"
+      "Bash(npx prisma migrate reset:*)",
+      "Bash(openspec:*)"
     ]
   },
   "enabledPlugins": {

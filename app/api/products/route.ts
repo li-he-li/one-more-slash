@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createProduct, getActiveProducts } from '@/lib/product-service';
+import { prisma } from '@/lib/prisma';
 
 /**
  * GET /api/products - List all active products (for bargain hall)
@@ -34,10 +35,40 @@ export async function POST(request: NextRequest) {
     }
 
     const session = JSON.parse(sessionCookie.value);
-    const publisherId = session.userId || session.secondmeId;
 
-    if (!publisherId) {
+    // 获取 publisherId
+    // 注意：session.userId 可能是数据库cuid（Mock Login）或secondmeId（SecondMe OAuth）
+    // 如果是secondmeId，需要先查询User表获取真正的数据库id
+    let publisherId: string;
+    const userIdValue = session.userId || session.secondmeId;
+
+    if (!userIdValue) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
+
+    // 检查是否是cuid格式（数据库主键id）
+    // cuid格式：以c开头，后面跟一串字符（如 cmlhy5njr0001v7dcyek8me23）
+    if (userIdValue.startsWith('c')) {
+      // Mock Login：userId已经是数据库主键，直接使用
+      publisherId = userIdValue;
+      console.log('[Create Product] Using Mock Login userId (DB primary key):', publisherId);
+    } else {
+      // SecondMe OAuth：userId是secondmeId，需要查询User表获取真正的数据库id
+      const user = await prisma.user.findUnique({
+        where: { secondmeId: userIdValue },
+        select: { id: true },
+      });
+
+      if (!user) {
+        console.error('[Create Product] User not found for secondmeId:', userIdValue);
+        return NextResponse.json(
+          { error: '用户不存在，请重新登录' },
+          { status: 401 }
+        );
+      }
+
+      publisherId = user.id;
+      console.log('[Create Product] Using SecondMe OAuth userId (mapped to DB primary key):', publisherId);
     }
 
     const body = await request.json();

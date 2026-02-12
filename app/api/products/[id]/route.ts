@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getProductById, updateProduct, deleteProduct } from '@/lib/product-service';
+import { prisma } from '@/lib/prisma';
 
 /**
  * GET /api/products/[id] - Get product details
@@ -46,10 +47,36 @@ export async function PUT(
     }
 
     const session = JSON.parse(sessionCookie.value);
-    const userId = session.userId || session.secondmeId;
 
-    if (!userId) {
+    // 获取 publisherId
+    // 注意：session.userId 可能是数据库cuid（Mock Login）或secondmeId（SecondMe OAuth）
+    // 如果是secondmeId，需要先查询User表获取真正的数据库id
+    let userId: string;
+    const userIdValue = session.userId || session.secondmeId;
+
+    if (!userIdValue) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
+
+    // 检查是否是cuid格式（数据库主键id）
+    if (userIdValue.startsWith('c')) {
+      // Mock Login：userId已经是数据库主键，直接使用
+      userId = userIdValue;
+    } else {
+      // SecondMe OAuth：userId是secondmeId，需要查询User表获取真正的数据库id
+      const user = await prisma.user.findUnique({
+        where: { secondmeId: userIdValue },
+        select: { id: true },
+      });
+
+      if (!user) {
+        return NextResponse.json(
+          { error: '用户不存在，请重新登录' },
+          { status: 401 }
+        );
+      }
+
+      userId = user.id;
     }
 
     const { id } = await params;
@@ -134,10 +161,36 @@ export async function DELETE(
     }
 
     const session = JSON.parse(sessionCookie.value);
-    const userId = session.userId || session.secondmeId;
 
-    if (!userId) {
+    // 获取 publisherId
+    // 注意：session.userId 可能是数据库cuid（Mock Login）或secondmeId（SecondMe OAuth）
+    // 如果是secondmeId，需要先查询User表获取真正的数据库id
+    let userId: string;
+    const userIdValue = session.userId || session.secondmeId;
+
+    if (!userIdValue) {
       return NextResponse.json({ error: 'Invalid session' }, { status: 401 });
+    }
+
+    // 检查是否是cuid格式（数据库主键id）
+    if (userIdValue.startsWith('c')) {
+      // Mock Login：userId已经是数据库主键，直接使用
+      userId = userIdValue;
+    } else {
+      // SecondMe OAuth：userId是secondmeId，需要查询User表获取真正的数据库id
+      const user = await prisma.user.findUnique({
+        where: { secondmeId: userIdValue },
+        select: { id: true },
+      });
+
+      if (!user) {
+        return NextResponse.json(
+          { error: '用户不存在，请重新登录' },
+          { status: 401 }
+        );
+      }
+
+      userId = user.id;
     }
 
     const { id } = await params;

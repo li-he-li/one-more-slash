@@ -134,8 +134,10 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.redirect(new URL("/dashboard", request.url));
 
     // 设置 session cookie
+    // 注意：同时设置 userId 和 secondmeId 确保兼容性
     response.cookies.set("secondme_session", JSON.stringify({
-      userId: secondmeId,
+      userId: secondmeId,  // 兼容性：设置为 secondmeId
+      secondmeId: secondmeId,  // 明确的 secondmeId
       accessToken: tokens.accessToken,
       name: userInfo.name,
       email: userInfo.email,
