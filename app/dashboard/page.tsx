@@ -1,91 +1,20 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ProductCard } from '@/components/ProductCard';
 
-const products = [
-  {
-    id: 1,
-    title: 'Apple iPhone 15 Pro Max 256GB',
-    progress: 180,
-    currentPrice: '¥5,980',
-    targetPrice: '¥6,999',
-    publishPrice: '¥7,999',
-    user: '小红正在砍价',
-    timeLeft: '23:45:12',
-  },
-  {
-    id: 2,
-    title: 'iPad Pro 11英寸 M2芯片 256GB',
-    progress: 150,
-    currentPrice: '¥4,200',
-    targetPrice: '¥5,499',
-    publishPrice: '¥6,199',
-    user: '小明正在砍价',
-    timeLeft: '18:30:45',
-  },
-  {
-    id: 3,
-    title: 'AirPods Pro 2代 主动降噪',
-    progress: 200,
-    currentPrice: '¥1,500',
-    targetPrice: '¥1,799',
-    publishPrice: '¥1,899',
-    user: '阿华正在砍价',
-    timeLeft: '12:15:30',
-  },
-  {
-    id: 4,
-    title: 'Nintendo Switch OLED 版主机',
-    progress: 120,
-    currentPrice: '¥1,800',
-    targetPrice: '¥2,299',
-    publishPrice: '¥2,599',
-    user: '大伟正在砍价',
-    timeLeft: '08:42:18',
-  },
-  {
-    id: 5,
-    title: 'Dyson 戴森吹风机 HD08',
-    progress: 220,
-    currentPrice: '¥2,100',
-    targetPrice: '¥2,690',
-    publishPrice: '¥2,990',
-    user: '莉莉正在砍价',
-    timeLeft: '05:20:00',
-  },
-  {
-    id: 6,
-    title: '小米手环8 Pro NFC版',
-    progress: 240,
-    currentPrice: '¥320',
-    targetPrice: '¥399',
-    publishPrice: '¥499',
-    user: '强哥正在砍价',
-    timeLeft: '02:58:45',
-  },
-  {
-    id: 7,
-    title: 'Sony WH-1000XM5 无线降噪耳机',
-    progress: 190,
-    currentPrice: '¥1,850',
-    targetPrice: '¥2,299',
-    publishPrice: '¥2,499',
-    user: '阿杰正在砍价',
-    timeLeft: '15:30:00',
-  },
-  {
-    id: 8,
-    title: 'Keychron K2 Pro 机械键盘 RGB',
-    progress: 160,
-    currentPrice: '¥420',
-    targetPrice: '¥528',
-    publishPrice: '¥598',
-    user: '小雨正在砍价',
-    timeLeft: '09:15:30',
-  },
-];
+interface Product {
+  id: string;
+  title: string;
+  progress: number;
+  currentPrice: string;
+  targetPrice: string;
+  publishPrice: string;
+  user: string;
+  timeLeft: string;
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -94,7 +23,33 @@ export default function DashboardPage() {
   const [showSearchPanel, setShowSearchPanel] = useState(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showPublishModal, setShowPublishModal] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [currentSearch, setCurrentSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [searchPage, setSearchPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
+  const [publishForm, setPublishForm] = useState({
+    title: '',
+    publishPrice: '',
+    targetPrice: '',
+    imageUrl: '',
+  });
+  const [publishing, setPublishing] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  const userMenuTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasMoreRef = useRef(hasMore);
+  const loadingMoreRefState = useRef(loadingMore);
+  const isSearchingRef = useRef(isSearching);
+  const currentSearchRef = useRef(currentSearch);
+  const pageRef = useRef(page);
+  const searchPageRef = useRef(searchPage);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -123,6 +78,156 @@ export default function DashboardPage() {
     }
   }, []);
 
+  // 更新 refs
+  useEffect(() => {
+    hasMoreRef.current = hasMore;
+    loadingMoreRefState.current = loadingMore;
+    isSearchingRef.current = isSearching;
+    currentSearchRef.current = currentSearch;
+    pageRef.current = page;
+    searchPageRef.current = searchPage;
+  }, [hasMore, loadingMore, isSearching, currentSearch, page, searchPage]);
+
+  // 获取产品数据
+  const fetchProducts = useCallback(async (pageNum: number, searchQuery: string, append = false) => {
+    try {
+      if (!append) {
+        setLoading(true);
+      } else {
+        loadingMoreRefState.current = true;
+        setLoadingMore(true);
+      }
+
+      const params = new URLSearchParams({
+        page: pageNum.toString(),
+        limit: '8',
+      });
+
+      if (searchQuery) {
+        params.append('search', searchQuery);
+      }
+
+      const res = await fetch(`/api/products?${params.toString()}`);
+      if (!res.ok) throw new Error('获取产品失败');
+
+      const data = await res.json();
+
+      if (append) {
+        setProducts(prev => [...prev, ...data.products]);
+      } else {
+        setProducts(data.products);
+      }
+
+      setHasMore(data.pagination.hasMore);
+      setTotalCount(data.pagination.total);
+
+      if (searchQuery) {
+        searchPageRef.current = pageNum;
+        setSearchPage(pageNum);
+      } else {
+        pageRef.current = pageNum;
+        setPage(pageNum);
+      }
+    } catch (error) {
+      console.error('获取产品失败:', error);
+    } finally {
+      loadingMoreRefState.current = false;
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, []);
+
+  // 初始加载产品
+  useEffect(() => {
+    fetchProducts(1, '');
+  }, [fetchProducts]);
+
+  // 加载更多产品
+  const loadMoreProducts = useCallback(() => {
+    if (!hasMoreRef.current || loadingMoreRefState.current) {
+      return;
+    }
+
+    const currentPage = isSearchingRef.current ? searchPageRef.current : pageRef.current;
+    const nextPage = currentPage + 1;
+    const search = currentSearchRef.current;
+
+    fetchProducts(nextPage, search, true);
+  }, [fetchProducts]);
+
+  // 无限滚动加载更多
+  useEffect(() => {
+    const loadMoreObserver = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting) {
+          loadMoreProducts();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+
+    const observedElement = loadMoreRef.current;
+    if (observedElement) {
+      loadMoreObserver.observe(observedElement);
+    }
+
+    return () => {
+      if (observedElement) {
+        loadMoreObserver.unobserve(observedElement);
+      }
+    };
+  }, [loadMoreProducts]);
+
+  // 添加搜索历史并执行搜索
+  const addToSearchHistory = (query: string) => {
+    if (!query.trim()) return;
+
+    const newHistory = [query, ...searchHistory.filter(h => h !== query)].slice(0, 10);
+    setSearchHistory(newHistory);
+    localStorage.setItem('searchHistory', JSON.stringify(newHistory));
+    setShowSearchPanel(false);
+
+    // 执行搜索
+    performSearch(query);
+  };
+
+  // 执行搜索
+  const performSearch = (query: string) => {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
+      // 清除搜索
+      isSearchingRef.current = false;
+      currentSearchRef.current = '';
+      searchPageRef.current = 1;
+      setIsSearching(false);
+      setCurrentSearch('');
+      setSearchPage(1);
+      fetchProducts(1, '', false);
+      return;
+    }
+
+    isSearchingRef.current = true;
+    currentSearchRef.current = trimmedQuery;
+    searchPageRef.current = 1;
+    setIsSearching(true);
+    setCurrentSearch(trimmedQuery);
+    setSearchPage(1);
+    fetchProducts(1, trimmedQuery, false);
+  };
+
+  // 清除搜索
+  const clearSearch = () => {
+    isSearchingRef.current = false;
+    currentSearchRef.current = '';
+    searchPageRef.current = 1;
+    setIsSearching(false);
+    setCurrentSearch('');
+    setSearchPage(1);
+    fetchProducts(1, '', false);
+    setSearchQuery('');
+  };
+
   // 点击外部关闭搜索面板
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -140,21 +245,47 @@ export default function DashboardPage() {
     };
   }, [showSearchPanel]);
 
-  // 添加搜索历史
-  const addToSearchHistory = (query: string) => {
-    if (!query.trim()) return;
-
-    const newHistory = [query, ...searchHistory.filter(h => h !== query)].slice(0, 10);
-    setSearchHistory(newHistory);
-    localStorage.setItem('searchHistory', JSON.stringify(newHistory));
-    setShowSearchPanel(false);
-    // TODO: 执行搜索逻辑
-  };
+  // 清理用户菜单定时器
+  useEffect(() => {
+    return () => {
+      if (userMenuTimerRef.current) {
+        clearTimeout(userMenuTimerRef.current);
+      }
+    };
+  }, []);
 
   // 清除搜索历史
   const clearSearchHistory = () => {
     setSearchHistory([]);
     localStorage.removeItem('searchHistory');
+  };
+
+  // 鼠标进入用户菜单区域
+  const handleMouseEnter = () => {
+    // 清除关闭定时器
+    if (userMenuTimerRef.current) {
+      clearTimeout(userMenuTimerRef.current);
+      userMenuTimerRef.current = null;
+    }
+    setShowUserMenu(true);
+  };
+
+  // 鼠标离开用户菜单时延迟关闭
+  const handleMouseLeave = () => {
+    // 延迟 300ms 关闭，给用户时间移动到下拉菜单
+    userMenuTimerRef.current = setTimeout(() => {
+      setShowUserMenu(false);
+    }, 300);
+  };
+
+  // 退出登录
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/");
+    } catch (error) {
+      console.error("退出登录失败:", error);
+    }
   };
 
   if (loading) {
@@ -203,7 +334,12 @@ export default function DashboardPage() {
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
-                          addToSearchHistory(searchQuery);
+                          if (!searchQuery.trim()) {
+                            clearSearch();
+                            setShowSearchPanel(false);
+                          } else {
+                            addToSearchHistory(searchQuery);
+                          }
                         }
                       }}
                       placeholder="搜索商品名称、品牌"
@@ -271,10 +407,13 @@ export default function DashboardPage() {
 
             {/* 导航链接 */}
             <nav className="flex items-center gap-4 lg:gap-8 whitespace-nowrap">
-              <a href="/" className="text-text-primary hover:text-primary text-sm font-semibold transition-color">
+              <Link href="/" className="text-text-primary hover:text-primary text-sm font-semibold transition-color">
                 首页
-              </a>
-              <span className="bg-primary shadow-button border-2 border-primary rounded-full px-5 py-2 text-bg-card text-sm font-semibold cursor-pointer">
+              </Link>
+              <span
+                onClick={() => isSearching && clearSearch()}
+                className="bg-primary shadow-button border-2 border-primary rounded-full px-5 py-2 text-bg-card text-sm font-semibold cursor-pointer"
+              >
                 砍价大厅
               </span>
               <span className="border-primary bg-bg-page hover:bg-primary-bg shadow-card rounded-full border-2 px-5 py-2 text-primary text-sm font-semibold transition-all cursor-pointer">
@@ -286,15 +425,43 @@ export default function DashboardPage() {
             </nav>
 
             {/* 账号设置按钮 */}
-            <button className="bg-primary shadow-button border-2 border-primary hover:bg-primary-light flex items-center gap-2 rounded-full px-5 py-2 text-bg-card text-sm font-semibold transition-all">
-              {user.image ? (
-                <img src={user.image} alt={user.name} className="h-6 w-6 rounded-full" />
-              ) : (
-                <span>👤</span>
-              )}
-              <span>{user.name || '账号设置'}</span>
-              <span className="text-xs">▼</span>
-            </button>
+            <div
+              className="relative"
+              ref={userMenuRef}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <button
+                className="bg-primary shadow-button border-2 border-primary hover:bg-primary-light flex items-center gap-2 rounded-full px-5 py-2 text-bg-card text-sm font-semibold transition-all"
+              >
+                {user.image ? (
+                  <img src={user.image} alt={user.name} className="h-6 w-6 rounded-full" />
+                ) : (
+                  <span>👤</span>
+                )}
+                <span>{user.name || '账号设置'}</span>
+                <span className={`text-xs transition-transform ${showUserMenu ? 'rotate-180' : ''}`}>▼</span>
+              </button>
+
+              {/* 用户菜单下拉列表 */}
+              <div
+                className={`absolute top-full right-0 mt-2 w-48 bg-bg-card rounded-xl shadow-2xl border border-gray-200 overflow-hidden z-50 transition-all duration-200 origin-top-right ${
+                  showUserMenu
+                    ? 'opacity-100 scale-y-100 visible'
+                    : 'opacity-0 scale-y-95 invisible pointer-events-none'
+                }`}
+              >
+                <div className="py-2">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-text-primary hover:bg-bg-page text-sm font-medium transition-color"
+                  >
+                    <span>🚪</span>
+                    <span>退出登录</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </header>
@@ -302,17 +469,68 @@ export default function DashboardPage() {
       {/* 主体内容 */}
       <main className="mx-auto max-w-[1440px] px-10 py-6">
         {/* 页面标题 */}
-        <div className="mb-6 flex items-center gap-4">
-          <h1 className="text-text-primary text-2xl font-bold">🔥 砍价大厅</h1>
-          <p className="text-text-secondary text-sm">邀请好友帮忙砍价，0元免费拿好物！</p>
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h1 className="text-text-primary text-2xl font-bold">
+              {isSearching ? `🔍 搜索"${currentSearch}"` : '🔥 砍价大厅'}
+            </h1>
+            {!isSearching && (
+              <p className="text-text-secondary text-sm">邀请好友帮忙砍价，0元免费拿好物！</p>
+            )}
+            {isSearching && (
+              <p className="text-text-secondary text-sm">
+                找到 <span className="text-primary font-semibold">{totalCount}</span> 个商品
+              </p>
+            )}
+          </div>
+          {isSearching && (
+            <button
+              onClick={clearSearch}
+              className="flex items-center gap-2 text-text-primary hover:text-primary transition-color text-sm font-medium"
+            >
+              <span>✕</span>
+              <span>清除搜索</span>
+            </button>
+          )}
         </div>
 
-        {/* 商品网格 - 2行4列 */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {products.map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
-        </div>
+        {/* 商品网格 */}
+        {products.length > 0 ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {products.map((product) => (
+              <ProductCard key={product.id} {...product} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="text-6xl mb-4">🔍</div>
+            <h3 className="text-text-primary text-xl font-semibold mb-2">没有找到相关商品</h3>
+            <p className="text-text-secondary text-sm mb-6">试试搜索其他关键词吧</p>
+            <button
+              onClick={clearSearch}
+              className="bg-primary hover:bg-primary-light text-bg-card px-6 py-2 rounded-full text-sm font-semibold transition-all shadow-button"
+            >
+              返回砍价大厅
+            </button>
+          </div>
+        )}
+
+        {/* 加载更多指示器 */}
+        {products.length > 0 && (
+          <div ref={loadMoreRef} className="flex justify-center items-center py-8">
+            {loadingMore && (
+              <div className="flex items-center gap-3 text-primary">
+                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-sm font-semibold">加载更多商品...</span>
+              </div>
+            )}
+            {!hasMore && products.length > 8 && (
+              <div className="text-text-secondary text-sm">
+                没有更多商品了
+              </div>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );
