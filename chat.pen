@@ -9,9 +9,465 @@
       "name": "Frame",
       "clip": true,
       "width": 800,
-      "height": 600,
+      "height": 880,
       "fill": "#FFFFFF",
-      "layout": "none"
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "MBVCo",
+          "x": 0,
+          "y": 0,
+          "name": "商品介绍区",
+          "width": "fill_container(0)",
+          "height": 280,
+          "fill": "$bg-card",
+          "effect": {
+            "type": "shadow",
+            "shadowType": "outer",
+            "color": "#00000010",
+            "offset": {
+              "x": 0,
+              "y": 2
+            },
+            "blur": 8
+          },
+          "gap": 24,
+          "padding": 24,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "uqOvf",
+              "name": "商品图片",
+              "width": 240,
+              "height": "fill_container",
+              "fill": "$primary-bg",
+              "cornerRadius": 12,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#00000010",
+                "offset": {
+                  "x": 0,
+                  "y": 2
+                },
+                "blur": 4
+              },
+              "children": [
+                {
+                  "type": "text",
+                  "id": "78CvA",
+                  "content": "📱",
+                  "fontFamily": "Inter",
+                  "fontSize": 72,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "PWc7H",
+              "name": "商品信息",
+              "width": "fill_container",
+              "height": "fill_container",
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "omf2D",
+                  "name": "标题区",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "DlroQ",
+                      "name": "商品标题",
+                      "fill": "$text-primary",
+                      "content": "Apple iPhone 15 Pro Max 256GB",
+                      "fontFamily": "Inter",
+                      "fontSize": 24,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "yQbO3",
+                  "name": "价格区",
+                  "gap": 32,
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "2iHBX",
+                      "name": "当前价格",
+                      "fill": "$primary",
+                      "content": "已砍 ¥5,980",
+                      "fontFamily": "Inter",
+                      "fontSize": 28,
+                      "fontWeight": "bold"
+                    },
+                    {
+                      "type": "text",
+                      "id": "xDF0b",
+                      "name": "目标价格",
+                      "fill": "$text-secondary",
+                      "content": "/ 目标 ¥6,999",
+                      "fontFamily": "Inter",
+                      "fontSize": 18,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "NTeqy",
+                  "name": "进度条外框",
+                  "width": 400,
+                  "height": 12,
+                  "fill": "$primary-bg",
+                  "cornerRadius": 6,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Oqulr",
+                      "name": "进度填充",
+                      "width": 342,
+                      "height": "fill_container",
+                      "fill": "$primary",
+                      "cornerRadius": 6
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "TIyzH",
+                  "name": "邀请砍价按钮",
+                  "width": 200,
+                  "height": 48,
+                  "fill": "$primary",
+                  "cornerRadius": 24,
+                  "effect": {
+                    "type": "shadow",
+                    "shadowType": "outer",
+                    "color": "#E54C3C40",
+                    "offset": {
+                      "x": 0,
+                      "y": 2
+                    },
+                    "blur": 8
+                  },
+                  "justifyContent": "center",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "kF5Ti",
+                      "fill": "$bg-card",
+                      "content": "🔥 邀请好友砍价",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "i1yrQ",
+          "x": 0,
+          "y": 296,
+          "name": "聊天区域",
+          "width": "fill_container(0)",
+          "height": 480,
+          "fill": "$bg-page",
+          "layout": "vertical",
+          "gap": 16,
+          "padding": 24,
+          "children": [
+            {
+              "type": "frame",
+              "id": "L5RoW",
+              "name": "系统消息",
+              "width": 400,
+              "fill": "#FFF9E6",
+              "cornerRadius": 16,
+              "stroke": {
+                "thickness": 1,
+                "fill": "#FFE58F"
+              },
+              "padding": [
+                12,
+                20
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "f6h3M",
+                  "fill": "#F57C00",
+                  "content": "🎉 小红发起了砍价，邀请大家帮忙！",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "q3vKR",
+              "name": "消息1",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "MzIo9",
+                  "name": "头像1",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "#FFB6C1",
+                  "cornerRadius": 20,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "wGEdY",
+                      "content": "👤",
+                      "fontFamily": "Inter",
+                      "fontSize": 20,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "QkUKO",
+                  "name": "消息内容1",
+                  "fill": "#FFF5F5",
+                  "cornerRadius": 16,
+                  "stroke": {
+                    "thickness": 1,
+                    "fill": "#FFE0E0"
+                  },
+                  "padding": [
+                    12,
+                    16
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "QRU8S",
+                      "fill": "$text-primary",
+                      "content": "我来帮你砍一刀！🔪",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "CUCRT",
+                      "fill": "$primary",
+                      "content": "✨ 成功砍掉 ¥120",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "EIfyD",
+              "name": "消息2",
+              "width": "fill_container",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "Uyhpc",
+                  "name": "头像2",
+                  "width": 40,
+                  "height": 40,
+                  "fill": "#87CEEB",
+                  "cornerRadius": 20,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "BojwG",
+                      "content": "👤",
+                      "fontFamily": "Inter",
+                      "fontSize": 20,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "bcKJA",
+                  "name": "消息内容2",
+                  "fill": "#F0F8FF",
+                  "cornerRadius": 16,
+                  "stroke": {
+                    "thickness": 1,
+                    "fill": "#D0E8FF"
+                  },
+                  "padding": [
+                    12,
+                    16
+                  ],
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "OXiBI",
+                      "fill": "$text-primary",
+                      "content": "加一！我也帮忙砍一下 💪",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "WK5tO",
+                      "fill": "$primary",
+                      "content": "✨ 成功砍掉 ¥85",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "bold"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "fM8Ei",
+          "x": 0,
+          "y": 792,
+          "name": "输入区域",
+          "width": 800,
+          "height": 80,
+          "fill": "$bg-card",
+          "effect": {
+            "type": "shadow",
+            "shadowType": "outer",
+            "color": "#00000010",
+            "offset": {
+              "x": 0,
+              "y": -2
+            },
+            "blur": 8
+          },
+          "gap": 12,
+          "padding": [
+            16,
+            24
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "DemdW",
+              "name": "输入框",
+              "width": 600,
+              "height": 48,
+              "fill": "$bg-page",
+              "cornerRadius": 24,
+              "padding": [
+                0,
+                24
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "xHat5",
+                  "name": "占位文字",
+                  "fill": "$text-light",
+                  "content": "💬 说点什么鼓励的话...",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "wJSHM",
+              "name": "发送按钮",
+              "width": 140,
+              "height": 48,
+              "fill": "$primary",
+              "cornerRadius": 24,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#E54C3C40",
+                "offset": {
+                  "x": 0,
+                  "y": 2
+                },
+                "blur": 8
+              },
+              "justifyContent": "center",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "nL8ub",
+                  "name": "发送文字",
+                  "fill": "$bg-card",
+                  "content": "发送 ✈️",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "bold"
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
-  ]
+  ],
+  "variables": {
+    "bg-card": {
+      "type": "color",
+      "value": "#FFFFFF"
+    },
+    "bg-page": {
+      "type": "color",
+      "value": "#F5F5F5"
+    },
+    "primary": {
+      "type": "color",
+      "value": "#E54C3C"
+    },
+    "primary-bg": {
+      "type": "color",
+      "value": "#FFE5E5"
+    },
+    "primary-light": {
+      "type": "color",
+      "value": "#FF6B6B"
+    },
+    "text-light": {
+      "type": "color",
+      "value": "#999999"
+    },
+    "text-primary": {
+      "type": "color",
+      "value": "#333333"
+    },
+    "text-secondary": {
+      "type": "color",
+      "value": "#666666"
+    }
+  }
 }

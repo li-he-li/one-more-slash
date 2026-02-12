@@ -12,7 +12,26 @@
       "Bash(curl:*)",
       "mcp__web-reader__webReader",
       "Bash(npx create-next-app:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(git worktree remove:*)",
+      "Bash(git worktree prune:*)",
+      "Bash(git branch:*)",
+      "Bash(sqlite3:*)",
+      "Bash(node:*)",
+      "Bash(git -C .worktrees/publish-product status)",
+      "Bash(git -C .worktrees/publish-product diff:*)",
+      "Bash(git checkout:*)",
+      "Bash(git -C .worktrees/publish-product commit:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(npx prisma db seed:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(git worktree add:*)",
+      "Bash(npm test)",
+      "Bash(npm run)",
+      "Bash(timeout:*)",
+      "Bash(ping:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ]
   },
   "enabledPlugins": {
